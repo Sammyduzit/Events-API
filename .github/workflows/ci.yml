@@ -23,7 +23,7 @@ jobs:
 
             - name: Run Container
               run: |
-                docker run -d -p 5001:5001 --name events-api-test events-api:latest
+                docker run -d -p 5001:5001 --name events-api-container events-api:latest
                   for i in {1..20}; do
                     if curl -fsS http://localhost:5001/api/health; then
                         echo "Health check PASSED"
@@ -34,7 +34,7 @@ jobs:
                   done
 
                   echo "Health check FAILED"
-                  docker logs events-api-test || true
+                  docker logs events-api-container || true
                   exit 1
             
             - name: Setup Python
@@ -52,11 +52,34 @@ jobs:
 
             - name: Stop Container
               if: always()
-              run: docker stop events-api-test || true
+              run: |
+                docker stop events-api-container || true
 
             - name: Remove Container
               if: always()
-              run: docker rm events-api-test || true
+              run: |
+                docker rm events-api-container || true
+
+            - name: Docker Login
+              uses: docker/login-action@v3
+              with:
+                username: ${{secrets.DOCKERHUB_USERNAME}}
+                password: ${{secrets.DOCKERHUB_TOKEN}}
+
+            - name: Tag Docker Image
+              run: |
+                docker tag events-api:latest ${{secrets.DOCKERHUB_USERNAME}}/events-api:latest
+
+            - name: Push to DockerHub
+              run: |
+                docker push ${{secrets.DOCKERHUB_USERNAME}}/events-api:latest
+
+            - name: Trigger Render redeploy
+              run: |
+                curl -X POST ${{secrets.RENDER_DEPOLY_HOOK}}
+              
+
+
 
 
 

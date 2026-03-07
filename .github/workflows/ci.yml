@@ -11,13 +11,13 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Checkout code
+            - name: Checkout Code
               uses: actions/checkout@v4
             
-            - name: setup Docker Buildx
+            - name: Setup Docker Buildx
               uses: docker/setup-buildx-action@v3
 
-            - name: Build Docker image
+            - name: Build Docker Image
               run: |
                 docker build -t events-api:latest .
 
@@ -37,18 +37,26 @@ jobs:
                   docker logs events-api-test || true
                   exit 1
             
-            - name: Setup python
+            - name: Setup Python
               uses: actions/setup-python@v5
               with:
                 python-version: "3.13"
             
-            - name: Install dependencies
+            - name: Install Dependencies
               run: |
                 pip install -r requirements-test.txt
 
-            - name: Run tests against container
+            - name: Run Tests against Container
               run: |
                 pytest -v
+
+            - name: Stop Container
+              if: always()
+              run: docker stop events-api-test || true
+
+            - name: Remove Container
+              if: always()
+              run: docker rm events-api-test || true
 
 
 

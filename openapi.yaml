@@ -12,7 +12,7 @@ info:
 servers:
   - url: http://localhost:5001
     description: Local development server
-  - url: https://api.example.com
+  - url: https://events-api-5vxa.onrender.com
     description: Production server
 
 tags:
